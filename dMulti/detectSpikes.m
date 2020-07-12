@@ -25,28 +25,28 @@ function spikes = detectSpikes(sEMG,threshold)
     dt = sEMG.dt;
     
     
-    %test parameter
+    %=======test parameter================
     threshold = 1;
-    dis = goodwidth(0.004/dt);
-    %
+    dis = goodwidth(0.010/dt);
+    %=================================
     [max_vector(1,:),max_vector(2,:)]=max(abs(data));
-    [~,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',dis);
+    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',dis);
     
     peak_vector = [max_vector(:,pks_locs);pks_locs];
     
-    for j=20
-        for i=1:sEMG.ch(2)
+    for j=1:ch_r
+        for i=1:ch_c
             select_ch = [j,i];
-            sig.data(i,:) = sEMG.data((j-1)*sEMG.ch(2)+i,:);
+            sig.data(i,:) = data((j-1)*ch_c+i,:);
         end
     end
     sig.data = sig.data';
+    %sig.data = max_vector(1,:)';
     sig.dt = sEMG.dt;
     sig.t0 = sEMG.t0;
     figure();
     hold on
     h = markpeaks(sig, pks_locs);
-    
     
     
     

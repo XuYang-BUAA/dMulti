@@ -26,7 +26,7 @@ function [decomp_result] = dMulti(sEMG)
     % Time series
     t = t0 + dt * (0:data_len-1);
     
-    detectSpikes(sEMG,ch_num);
+    detectSpikes(sEMG,threshold);
     
     
     
