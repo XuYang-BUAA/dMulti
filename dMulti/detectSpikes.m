@@ -1,4 +1,4 @@
-function spikes = detectSpikes(sEMG,threshold)
+function [spikes,timings] = detectSpikes(sEMG,threshold)
 %==========================================================================
 %                        detect spikes                                    *
 %                                                                         *
@@ -26,27 +26,30 @@ function spikes = detectSpikes(sEMG,threshold)
     
     
     %=======test parameter================
-    threshold = 1;
-    dis = goodwidth(0.010/dt);
+    threshold = 25;
+    width = goodwidth(0.015/dt);
     %=================================
     [max_vector(1,:),max_vector(2,:)]=max(abs(data));
-    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',dis);
+    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',floor(width/2));
     
-    peak_vector = [max_vector(:,pks_locs);pks_locs];
+    %peak_vector = [max_vector(:,pks_locs);pks_locs];
+    spikes = sigsegment(data,pks_locs,width);
+    timings = pks_locs;
     
-    for j=1:ch_r
-        for i=1:ch_c
-            select_ch = [j,i];
-            sig.data(i,:) = data((j-1)*ch_c+i,:);
-        end
-    end
-    sig.data = sig.data';
-    %sig.data = max_vector(1,:)';
-    sig.dt = sEMG.dt;
-    sig.t0 = sEMG.t0;
-    figure();
-    hold on
-    h = markpeaks(sig, pks_locs);
+    
+%     for j=1:ch_r
+%         for i=1:ch_c
+%             select_ch = [j,i];
+%             sig.data(i,:) = data((j-1)*ch_c+i,:);
+%         end
+%     end
+%     sig.data = sig.data';
+%     %sig.data = max_vector(1,:)';
+%     sig.dt = sEMG.dt;
+%     sig.t0 = sEMG.t0;
+%     figure();
+%     hold on
+%     h = markpeaks(sig, pks_locs);
     
     
     
