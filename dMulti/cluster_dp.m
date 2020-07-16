@@ -5,9 +5,11 @@ disp('The format of this file should be: ')
 disp('Column 1: id of element i')
 disp('Column 2: id of element j')
 disp('Column 3: dist(i,j)')
-mdist=input('name of the distance matrix file (with single quotes)?\n');
-disp('Reading input distance matrix')
-xx=load(mdist);
+% mdist=input('name of the distance matrix file (with single quotes)?\n');
+% disp('Reading input distance matrix')
+%xx=load('example_distances.dat');
+xx_load=load('dis_test.mat');
+xx=xx_load.dist;
 ND=max(xx(:,2));
 NL=max(xx(:,1));
 if (NL>ND)
@@ -98,8 +100,9 @@ xlabel ('\rho')
 ylabel ('\delta')
 
 
-subplot(2,1,1)
-rect = getrect(1);
+h=subplot(2,1,1)
+%rect = getrect(1)
+rect = getrect(h);
 rhomin=rect(1);
 deltamin=rect(4);
 NCLUST=0;
