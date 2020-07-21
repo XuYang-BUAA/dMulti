@@ -67,8 +67,8 @@ end
 %     plot(t,sEMG.data{select_ch(1),select_ch(2)}+100*(i+41))
 %     hold on
 % end
-
-
+%%
+    decomp_result = dMulti(sEMG);
 
 
 

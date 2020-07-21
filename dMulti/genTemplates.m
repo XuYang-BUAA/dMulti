@@ -1,14 +1,14 @@
-function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
+function templates = genTemplates(spikes_con, ch_num, width, num_compoents)
 %==========================================================================
-%                        detect spikes                                    *
+%                        generate templates                               *
 %                                                                         *
 % INPUT:                                                                  *
-%    sEMG            -- filtered multi-channel sEMG data                  *
-%    threshold       -- threshold of peak detection                       *
+%    spikes_con      -- concatenation spikes                              *
+%    width           -- spike width                                       *
+%    num_compoents   -- num for ICA compoents                             *
 %                                                                         *
 % OUTPUT:                                                                 *
-%    spikes          -- spikes for clustering                             *
-%    timings         -- spike locations                                   *
+%    templates       -- MU templates                                      *
 %                                                                         *
 %                                                                         *
 %                                                                         *
@@ -18,42 +18,10 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
 %  HISTORY:                                                               *
 %    07/08/2020  : XuY create.                                            *
 %==========================================================================
-    %%
-    data = sEMG.data;
-    [ch_num,data_len]=size(data);
-    ch_r = sEMG.ch(1);
-    ch_c = sEMG.ch(2);
-    dt = sEMG.dt;
-    
-    
-    %=======test parameter================
-    width = goodwidth(0.020/dt);
-    threshold = 5;
-    %=================================
-    [max_vector(1,:),max_vector(2,:)]=max(abs(data));
-    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',floor(width/2));
-    
-    %peak_vector = [max_vector(:,pks_locs);pks_locs];
-    spikes = sigsegment(data',pks_locs,width);%width * peaks * channels
-    %spikes = spikes.*hanning(width);
-    timings = pks_locs;
-    [~,spike_num]=size(timings);
-    spikes_con = reshape(permute(spikes,[1 3 2]),[],spike_num);%concatenate spikes by channels 
-    spikes_hanning = reshape(permute(spikes.*hanning(width),[1 3 2]),[],spike_num);
-    %spikes_con = spikes_hanning;
-    %%test pca
-    [feature_P,feature_Z] = featurePCA(spikes_con,width,4);
-    
-    dist_test = zeros(spike_num*(spike_num-1)/2,3);
-%     k=1;
-%     for i =1:(spike_num-1)
-%         for j = (i+1):spike_num
-%             dist(k,1) = i;
-%             dist(k,2) = j;
-%             dist(k,3) = pdist2(feature_P(i,:),feature_P(j,:));
-%             k = k+1;
-%         end
-%     end
+
+    [~,spike_num] = size(spikes_con);
+    [feature_P,feature_Z] = featurePCA(spikes_con,width,num_compoents);
+
     S = floor(0.05*spike_num);
 %     dist = pdist2(feature_P,feature_P,'euclidean','Smallest',S);
 %     rho = mean(dist);
@@ -81,6 +49,7 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
     for i = 1:length(cluster_ind)
         templates(:,i) = mean(spikes_con(:,nearest(1:10,i)),2);
     end
+    
     for i=1:spike_num
         [~,spike_cluster(i)] = min(dist(i,cluster_ind));
     end
@@ -100,19 +69,3 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
 %     figure();
 %     hold on
 %     h = markpeaks(sig, pks_locs);
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-   
