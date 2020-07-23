@@ -7,8 +7,8 @@ disp('Column 2: id of element j')
 disp('Column 3: dist(i,j)')
 % mdist=input('name of the distance matrix file (with single quotes)?\n');
 % disp('Reading input distance matrix')
-%xx=load('example_distances.dat');
-xx_load=load('dis_test.mat');
+xx=load('example_distances.dat');
+%xx_load=load('dis_test.mat');
 xx=xx_load.dist;
 ND=max(xx(:,2));
 NL=max(xx(:,1));

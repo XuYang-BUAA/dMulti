@@ -31,7 +31,7 @@ function [decomp_result] = dMulti(sEMG)
 %     ch_r = sEMG.ch(1);
 %     ch_c = sEMG.ch(2);
     width = goodwidth(0.020/dt);
-    threshold = 5;
+    threshold = 1;
     num_compoents = 10;
     
     [spikes, timings, spike_num]= detectSpikes(sEMG,threshold,width);

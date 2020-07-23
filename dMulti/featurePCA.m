@@ -43,7 +43,7 @@ for i = 11:35
     plot(X(:, i), '-', 'LineWidth', 1.5, 'color', [254, 67, 101]/255)
     plot(X_re(:, i), '-', 'LineWidth', 1.5, 'color', [0, 114, 189]/255)
     for j=1:ch_num
-        line([width*j,width*j],[-40,40],'linestyle','--');
+        line([width*j,width*j],[-1,1],'linestyle','--');
     end
     %legend('原始信号', '重构信号')
     title(['第 ',num2str(i),' 个特征'])

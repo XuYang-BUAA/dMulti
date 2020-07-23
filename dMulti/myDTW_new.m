@@ -90,36 +90,40 @@ if ~isempty(x) && ~isempty(y)
   dist=C(size(x,1),size(y,1));
   [ix,iy] = traceback(C);
   %test
-  figure
   [x_len,~] = size(ix);
-  plot(x(:,5),'linewidth',5)
-  hold on
-  plot(y(:,5)+50,'linewidth',5)
-  for i=1:x_len
-     line([ix(i),iy(i)],[x(ix(i),5),y(iy(i),5)+50])
-     hold on
-  end
-  trace_len = length(ix);
-  c_wrap = zeros(width,ch_num);
-  i=1;
-  while(i<trace_len)
-      k = 0;
-      while(ix(i+k+1)==ix(i))
-          k=k+1;
-       end
-%       if(k>1)
-%           stop=0;
+%   figure
+% 
+%   plot(x(:,2),'linewidth',5)
+%   hold on
+%   plot(y(:,2)+0.5,'linewidth',5)
+%   for i=1:x_len
+%      line([ix(i),iy(i)],[x(ix(i),2),y(iy(i),2)+0.5])
+%      hold on
+%   end
+   trace_len = length(ix);
+%   c_wrap = zeros(width,ch_num);
+%   i=1;
+%   while(i<=trace_len)
+%       k = 0;
+%       try
+%           while(ix(i+k+1)==ix(i)&&i+k<trace_len-1)
+%               k=k+1;
+%           end
+%       catch
 %       end
-      c_wrap(ix(i),:) = mean(y(iy(i):iy(i+k),:),1);
-      i=i+k+1;
-  end
-  c_wrap(width,:) = y(width,:);
-  c_test = reshape(c_wrap,[],1);
-  figure
-  plot(c);
-  hold on
-  plot(q);
-  plot(c_test,'color','r')
+% %       if(k>1)
+% %           stop=0;
+% %       end
+%       c_wrap(ix(i),:) = mean(y(iy(i):iy(i+k),:),1);
+%       i=i+k+1;
+%   end
+%   %c_wrap(width,:) = y(width,:);
+%   c_test = reshape(c_wrap,[],1);
+% %   figure
+% %   plot(c);
+% %   hold on
+% %   plot(q);
+% %   plot(c_test,'color','r')
   for i =1:ch_num-1
         ix = [ix;ix(1:trace_len)+i*width];
         iy = [iy;iy(1:trace_len)+i*width];
@@ -146,9 +150,9 @@ function C = myCumulativeDistance(x, y, width, ch_num)
     C = zeros(m,n); %m*n 
     
 
-    d = d_ddtw(x,y,m,n);
+    %d = d_ddtw(x,y,m,n);
     %d = d_sdtw(x,y,m,n);
-    %d = d_dtw(x,y,m,n);
+    d = d_dtw(x,y,m,n);
     
     %  symmetic1
     %  o       o
@@ -192,7 +196,7 @@ function d = d_dtw(x,y,m,n)
     d = zeros(m,n);
     for i = 1:m
         for j=1:n
-            d(i,j) = abs(x(i)-y(j));
+            d(i,j) = mean( abs(x(i,:)-y(j,:)) );
         end
     end
 

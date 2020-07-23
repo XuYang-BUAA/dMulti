@@ -29,17 +29,34 @@ for i=1:5
     end
 end
 %% plot templates
-figure
+%figure
 [~,temp_len] = size(templates);
 for i=1:temp_len
-    subplot(temp_len, 1, i)
-    plot(templates(:,i), '-', 'LineWidth', 1.5, 'color', [0, 0, 0]/255)
+    %subplot(temp_len, 1, i)
+    plot(templates(:,i)+i-1, '-', 'LineWidth', 1.5, 'color', [0, 0, 0]/255)
     hold on 
 end
 for i=1:temp_len
-    subplot(temp_len, 1, i)
+    %subplot(temp_len, 1, i)
     for j=1:ch_num
-        line([width*j,width*j],[-40,40],'linestyle','--');
+        line([width*j,width*j],[-1,temp_len],'linestyle','--');
+        hold on
+    end
+end
+%%
+n_r = 15*8;
+figure
+hold on
+for i=1:1
+
+    %subplot(temp_len, 1, i)
+    for j = 1:7
+       
+        plot(templates(((j-1)*n_r+1):j*n_r,i)+j-1,  'color', [0, 0, i*30]/255)
+        hold on 
+    end
+    for j=1:8
+        line([width*j,width*j],[-1,7],'linestyle','--');
         hold on
     end
 end
@@ -72,23 +89,23 @@ plot(H_test(:,50));
 close all
 clear ix iy
 figure
-test_spike = circshift(spikes_con(:,50),3);
+test_spike = circshift(spikes_con(:,103),0);
 plot(test_spike)
 hold on
-plot(templates(:,7))
+plot(templates(:,6))
 ch_num = 10;
 for j=1:ch_num
     line([width*j,width*j],[-40,40],'linestyle','--');
     hold on
 end
 stop =1;
-for i = 7:temp_len
+for i = 1:temp_len
     for j=1:1
-        figure
+        %figure
         %[dist(j,:),ix(j,:),iy(j,:)]=myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
         %[dist(j,:),ix(j,:),iy(j,:)]=myDTW_new(test_spike,templates(:,i),width,ch_num);
-        %[dist(i),~,~]=myDTW_new(test_spike,templates(:,i),width,ch_num);
-        myDTW_new(test_spike,templates(:,i),width,ch_num);
+        [dist(i),~,~]=myDTW_new(test_spike,templates(:,i),width,ch_num);
+        %myDTW_new(test_spike,templates(:,i),width,ch_num);
         %[dist(j,i),~,~]=myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
         %[dist(j,:,i),~,~]=dtw(test_spike((2*width-1)*(ch_num-1)+1:(2*width-1)*(ch_num-1)+3*width-2),templates(width*(ch_num-1)+1:width*ch_num,i));
         %myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
@@ -108,12 +125,38 @@ for i=1:x_len
 end
 % ali_temp = 
     
-    
-    
-    
-    
-    
-    
+%%
+close all
+figure
+q = spikes_con(:,40);
+c = spikes_con(:,606);
+plot(q)
+hold on
+plot(c)
+for j=1:ch_num
+    line([width*j,width*j],[-0.5,1],'linestyle','--');
+    hold on
+end
+
+%[dist,~,~] = 
+myDTW_new(q,c,width,ch_num);
+%%
+figure
+for j = 1:template_num
+    for i = 1:20
+        %plot(spikes_con(:,nearest(i,j))+j-1)
+        plot(spikes_con_temp(:,nearest(i,j))+j-1)
+        hold on
+    end
+end
+% for j=1:ch_num
+%     line([width*j,width*j],[-1,template_num],'linestyle','--');
+%     hold on
+% end  
+for j=1:ch_num
+    line([45*j,45*j],[-1,template_num],'linestyle','--');
+    hold on
+end  
     
     
     
