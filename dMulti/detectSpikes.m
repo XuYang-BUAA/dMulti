@@ -29,22 +29,24 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
     
     %=======test parameter================
     
-    width = goodwidth(0.02/dt);%spike width
-    temp_width = goodwidth(0.02/dt);
-    threshold = 0.07;
+    width = goodwidth(0.015/dt);%spike width
+    temp_width = goodwidth(0.015/dt);
+    threshold = 0.1;
     %=================================
     [max_vector(1,:),max_vector(2,:)]=max(abs(data));
-    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',floor(temp_width/2));
+    [pks,pks_locs] = findpeaks(max_vector(1,:),'MinPeakHeight', threshold,'MinPeakDistance',floor(width/2));
     
     %peak_vector = [max_vector(:,pks_locs);pks_locs];
     spikes = sigsegment(data',pks_locs,width);%width * peaks * channels
     spikes_temp = sigsegment(data',pks_locs,temp_width);
     %spikes = sigsegment(data',pks_locs,15);
+    spikes_hanning = spikes.*hanning(width);
     spikes = spikes.*hanning(width);
     timings = pks_locs;
     [~,spike_num]=size(timings);
     
     spikes_con = reshape(permute(spikes,[1 3 2]),[],spike_num);%concatenate spikes by channels 
+    spikes_con_hanning = reshape(permute(spikes_hanning,[1 3 2]),[],spike_num);
     spikes_con_temp = reshape(permute(spikes_temp,[1 3 2]),[],spike_num);
     %spikes_hanning = reshape(permute(spikes.*hanning(width),[1 3 2]),[],spike_num);
     %spikes_con = spikes_hanning;
@@ -76,12 +78,15 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
 %         num = i
 %     end
 %%
+    dist = zeros(spike_num,spike_num);
     for i =1:spike_num
         for j=1:spike_num
             [~,~,dist(i,j),~]=caldiff(spikes_con(:,i),spikes_con(:,j));
+            %dist(i,j) = norm(spikes_con(:,i)-spikes_con(:,j));
         end
     end
     %%
+    dist_test = zeros(spike_num,spike_num);
     for i = 1:spike_num
         for j = 1:spike_num
             dist_test(i,j) = max(dist(i,j),dist(j,i));
@@ -92,10 +97,12 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
     %dist = dist./A;
     %%
     S=floor(0.01*spike_num);
+    S=10;
     dist_sort = sort(dist);
+
     rho = mean(dist_sort(1:S,:));
     delta = zeros(1,spike_num);
-
+    
     for i = 1:spike_num
         try
             delta(i) = min(dist(i,find(rho<rho(i))));
@@ -107,37 +114,38 @@ function [spikes_con,timings, spike_num] = detectSpikes(sEMG,width,threshold)
     dr_sort = sort(dr);
     dr_threshold = mean(dr_sort(1:floor(length(dr)/2)))*3;
     
-    dr_threshold = 1.6;
+    dr_threshold = 1.5;
     
     cluster_ind = find(delta./rho>dr_threshold);
     template_num = length(cluster_ind);
     spike_cluster = zeros(1,spike_num);
     
-    templates = zeros(width*ch_num,template_num);
+    templates = zeros(temp_width*ch_num,template_num);
     [~,nearest] = sort(dist(:,cluster_ind));
     for i = 1:length(cluster_ind)
         %templates(:,i) = mean(spikes_con(:,nearest(1:10,i)),2);
         templates(:,i) = mean(spikes_con_temp(:,nearest(1:10,i)),2);
+        %templates(:,i) = mean(spikes_con_hanning(:,nearest(1:10,i)),2);
     end
     for i=1:spike_num
         [~,spike_cluster(i)] = min(dist(i,cluster_ind));
     end
     
     %spike_feature = [timings ; feature_P'];
-%     clear sig
-%     for j=1:ch_r
-%         for i=1:ch_c
-%             select_ch = [j,i];
-%             sig.data(i,:) = data((j-1)*ch_c+i,:);
-%         end
-%     end
-%     sig.data = sig.data';
-%     %sig.data = max_vector(1,:)';
-%     sig.dt = sEMG.dt;
-%     sig.t0 = sEMG.t0;
-%     figure();
-%     hold on
-%     h = markpeaks(sig, pks_locs);
+    clear sig
+    for j=1:ch_r
+        for i=1:ch_c
+            select_ch = [j,i];
+            sig.data(i,:) = data((j-1)*ch_c+i,:);
+        end
+    end
+    sig.data = sig.data';
+    %sig.data = max_vector(1,:)';
+    sig.dt = sEMG.dt;
+    sig.t0 = sEMG.t0;
+    figure();
+    hold on
+    h = markpeaks(sig, pks_locs);
 %     
     
     

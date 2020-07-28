@@ -86,41 +86,56 @@ plot(H_test(:,50));
 %plot(H_test(:,50) - H_temp(:,delay,8),'k')
     
 %% test dtw
-close all
+%close all
 clear ix iy
+
+%test_seg = width*3+1:width*4;
+test_seg = 1:size(templates,1);
 figure
-test_spike = circshift(spikes_con(:,103),0);
-plot(test_spike)
+test_spike = circshift(spikes_con_temp(:,1057),0);
+test_spike_han = spikes_con(:,1057);
+%plot(test_spike)
 hold on
-plot(templates(:,6))
-ch_num = 10;
+plot(test_spike(test_seg));
 for j=1:ch_num
-    line([width*j,width*j],[-40,40],'linestyle','--');
+    line([width*j,width*j],[-0.5,1],'linestyle','--');
     hold on
 end
+ch_num = 1;
+% for j=1:ch_num
+%     line([width*j,width*j],[-0.5,0.5],'linestyle','--');
+%     hold on
+% end
 stop =1;
-for i = 1:temp_len
-    for j=1:1
+for i = 3
+    plot(templates(test_seg,i),'k')
+    for j=1:8
         %figure
         %[dist(j,:),ix(j,:),iy(j,:)]=myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
         %[dist(j,:),ix(j,:),iy(j,:)]=myDTW_new(test_spike,templates(:,i),width,ch_num);
-        [dist(i),~,~]=myDTW_new(test_spike,templates(:,i),width,ch_num);
+        %[dist(i),~,~,sub]=myDTW_new(test_spike,templates(:,i),width,ch_num);
         %myDTW_new(test_spike,templates(:,i),width,ch_num);
+        figure
+        test_seg = width*(j-1)+1:width*j;
+        test_dtw(j) = myDTW_new(test_spike(test_seg),templates(test_seg,i),width,ch_num);
+        
         %[dist(j,i),~,~]=myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
         %[dist(j,:,i),~,~]=dtw(test_spike((2*width-1)*(ch_num-1)+1:(2*width-1)*(ch_num-1)+3*width-2),templates(width*(ch_num-1)+1:width*ch_num,i));
         %myDTW(test_spike(width*(j-1)+1:width*j),templates(width*(j-1)+1:width*j,i));
+        %dtw(test_spike,templates(:,i),width,ch_num);
     end
 end
+
 %dist = sum(dist);
 %%
 figure
 ch_sel = 1;
 plot(test_spike(width*(ch_sel-1)+1:width*ch_sel));
 hold on
-plot(templates(width*(ch_sel-1)+1:width*ch_sel,8)+1);
+plot(templates(width*(ch_sel-1)+1:width*ch_sel,3)+0.5);
 [~,x_len] = size(ix);
 for i=1:x_len
-     line([ix(ch_sel,i),iy(ch_sel,i)],[test_spike(ix(ch_sel,i)+width*(ch_sel-1)),templates(iy(ch_sel,i)+width*(ch_sel-1),8)+1])
+     line([ix(ch_sel,i),iy(ch_sel,i)],[test_spike(ix(ch_sel,i)+width*(ch_sel-1)),templates(iy(ch_sel,i)+width*(ch_sel-1),3)+0.5])
      hold on
 end
 % ali_temp = 
@@ -143,7 +158,7 @@ myDTW_new(q,c,width,ch_num);
 %%
 figure
 for j = 1:template_num
-    for i = 1:20
+    for i = 1:10
         %plot(spikes_con(:,nearest(i,j))+j-1)
         plot(spikes_con_temp(:,nearest(i,j))+j-1)
         hold on
@@ -154,14 +169,44 @@ end
 %     hold on
 % end  
 for j=1:ch_num
-    line([45*j,45*j],[-1,template_num],'linestyle','--');
+    line([width*j,width*j],[-1,template_num],'linestyle','--');
     hold on
 end  
     
     
     
-    
-    
-    
-    
+%%
+figure
+for j = 1:8
+	plot(data(j,:)+j-1)
+	hold on
+end
+%% test laplace
+
+%test_laplace = data1(37,:)*4 - data1(36,:) - data1(38,:)- data1(29,:)- data1(45,:) ;
+test_d = data1(37,:)-data1(38,:);
+figure
+plot(test_laplace)
+hold on
+%figure
+plot(data1(37,:))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     

@@ -112,9 +112,12 @@ end
 data_plot = permute(data_d,[3 2 1]);
 figure
 hold on
-for i=1:7
+for i=1:8
     plot(data_plot(:,i,4)+1*(i-1))
 end
+% for j=1:8
+%     data_raw_test(j,:) = data1(elearr(4,j),:);
+% end
 %%
 clc;clear all;close all;
 load('F:\CC\Data\M4\CC181026_M2_Trial1_sEMG.mat')
@@ -124,12 +127,21 @@ sEMG.dt = 1/2048;
 sEMG.t0 = 0;
 sEMG.ch = [1,8];
 sEMG.data = data_plot(:,:,4)';
+%sEMG.data = data_raw_test;
 %a = reshape(data_plot,length(data_plot(:,1,1)),[]);
 %sEMG.data = a';
 figure
-plot(sEMG.data(1,:))
-
-
+hold on
+for i=1:8
+    plot(sEMG.data(i,:)+1*(i-1))
+end
+filter_test = filter(filter2k,sEMG.data);
+figure
+hold on
+for i=1:8
+    plot(filter_test(i,:)+1*(i-1))
+end
+%sEMG.data = filter_test;
 
 
 
