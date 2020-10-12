@@ -109,7 +109,7 @@ for i=1:7
         data_d(i,j,:) = data1(elearr(i,j),:)-data1(elearr(i+1,j),:);
     end
 end
-data_plot = permute(data_d,[3 2 1]);
+data_plot = permute(data_d,[1 2 3]);
 figure
 hold on
 for i=1:8
@@ -120,13 +120,28 @@ end
 % end
 %%
 clc;clear all;close all;
-load('F:\CC\Data\M4\CC181026_M2_Trial1_sEMG.mat')
-data1 = Data_sEMG(1:64,:);
+%load('F:\CC\Data\CC181026_Pro2_Task3_Trial1_sEMG.mat')
+load('F:\CC\Data\CC181026_M2_Trial1_sEMG.mat')
+load('F:\CC\Data\CC181026_M2_Trial1_decomp_grid_elec5_epoch30_diff1_bip0.mat')
+%data1 = Data_sEMG(1:64,:);
+data1 = Data_sEMG(65:128,:);
 %%
-sEMG.dt = 1/2048;
+sEMG.dt = 1/2048/2;
 sEMG.t0 = 0;
 sEMG.ch = [1,8];
-sEMG.data = data_plot(:,:,4)';
+%sEMG.data = data_plot(:,:,:)';
+data_f_d(1,5,:) = 0.01;
+data_f_d_u = upsampleSig(data_f_d);
+sEMG.data = data_f_d_u;
+%sEMG.data = data_f;
+
+%sEMG.data=data1(elearr(4,:),:);
+%data_re = reshape(data_plot,size(data_plot,1),[]);
+
+% for i =1:7
+%     data_re(:,(i-1)*8+1:i*8) = data_plot(:,:,i);
+% end
+%sEMG.data = data_re(:,17:40)';
 %sEMG.data = data_raw_test;
 %a = reshape(data_plot,length(data_plot(:,1,1)),[]);
 %sEMG.data = a';
@@ -135,19 +150,123 @@ hold on
 for i=1:8
     plot(sEMG.data(i,:)+1*(i-1))
 end
-filter_test = filter(filter2k,sEMG.data);
+clear filter_test;
+filter_test = filter(filter2k,data1(:,:));
+filter_test = filter(notching50,filter_test);
+for i=1:8
+    smoothed(i,:) = smooth(1:61440,sEMG.data(i,:),0.00015,'loess');
+end
+
+%figure
+hold on
+for i=1:8
+    plot(smoothed(i,:)+1*(i-1))
+end
+sEMG.data = smoothed;
+
+%%
+
+filter_test = filter(filter2k,data1')';
 figure
 hold on
 for i=1:8
-    plot(filter_test(i,:)+1*(i-1))
+    for j=1:8
+        
+        plot(data1((i-1)*8+j,:) + (i-1)*8+j);
+        plot(filter_test((i-1)*8+j,:) + (i-1)*8+j,'r');
+    end
 end
-%sEMG.data = filter_test;
+    
+clear data_d_f
+for i=1:7
+    for j=1:8
+        data_d_f(i,j,:) = filter_test(elearr(i,j),:)-filter_test(elearr(i+1,j),:);
+        %data_d(i,j,:) = data1(elearr(i,j),:)-data1(elearr(i+1,j),:);
+    end
+end
+
+for i=1:8
+    for j=1:8
+        data_f(i,j,:) = filter_test(elearr(i,j),:);
+        data_raw(i,j,:) = data1(elearr(i,j),:);
+    end
+end
 
 
+figure
+hold on
+for i=1:7
+    for j=1:8
+        %plot(reshape(data_d_f(i,j,:),[],1) + (i-1)*8+j);
+        %plot(reshape(data_d(i,j,:),[],1) + (i-1)*8+j);
+        %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_d(i,j,:),[],1)+1.5*i)
+        %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_d_f(i,j,:),[],1)+1.5*i)
+        
+        %plot((i-1)*70000:(i-1)*70000+61439,reshape(filter_test((i-1)*8+j,:),[],1)+1.5*j)
+        
+         %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_raw(i,j,:),[],1)+1.5*i,'r')
+         %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_f(i,j,:),[],1)+1.5*i,'b')
+         %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_raw_d(i,j,:),[],1)+1.5*i,'b')
+         %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_f_d(i,j,:),[],1)+1.5*i,'r')
+         plot((j-1)*130000:(j-1)*130000+122878,reshape(data_f_d_u(i,j,:),[],1)+1.5*i,'r')
+         %plot((j-1)*70000:(j-1)*70000+61439,reshape(smoothed(i,j,:),[],1)+1.5*i,'r')
+        %plot((j-1)*70000:(j-1)*70000+61439,reshape(data_smooth_d(i,j,:),[],1)+1.5*i,'r')
+    end
+end
+
+for i=1:8
+    for j=1:8
+        data_f(i,j,:) = filter_test((i-1)*8+j,:);
+    end
+end
+
+clear smoothed
+for i=1:8
+    for j=1:8
+        smoothed(i,j,:) = smooth(1:61440, data_f(i,j,:),0.00015,'loess');
+    end
+end
+
+for i=1:7
+    for j=1:8
+        %data_smooth_d(i,j,:) = smoothed(i+1,j,:) - smoothed(i,j,:);
+        data_f_d(i,j,:) = data_f(i+1,j,:) - data_f(i,j,:);
+        data_raw_d(i,j,:)=data_raw(i+1,j,:) - data_raw(i,j,:);
+    end
+end
 
 
+sEMG.data = data_f(2:7,2:7,:);
 
+%%
 
+    width = 0.015;
+    threshold = 0.1;
+    dr_coe = 3;
+    [spikes, templates_result] = getTemplates(sEMG,width,threshold,dr_coe);
+    
+    upsample_temp = upsampleTemp(templates_result.templates,0.2);
+    for i=1:7
+        warped_temp(:,:,:,:,i) = warp_template(upsample_temp, templates_result.width, 0.2+0.2*i, 1);
+        %plot(1:templates_result.width,warped_temp(:,1,4,4,i))
+        %hold on
+    end
+    templates_result.warped = warped_temp;   
+    
+    plotTemplates(spikes, templates_result);
+   
+%%
+    A=ones(2,2,5,2);
+    for i=1:5
+        for j=1:2
+            A(:,:,i,j)=j*i*A(:,:,i,j);
+        end
+    end
+    A = permute(A,[3,4,1,2]);
+    S2 = A.^2;
+    S = sqrt(sum(S2,1));
+    W = A./S;
+    W=permute(W,[3,4,1,2]);
 
 
 

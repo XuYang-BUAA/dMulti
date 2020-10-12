@@ -1,19 +1,30 @@
 %function [dist,ix,iy,sub] = myDTW_new(q,c,width,ch_num) 
-function dist = myDTW_new(q,c,width,ch_num) 
+function [dist, c_wrap] = myDTW_new(q,c,width,ch_num,select_ch) 
 %   References: 
 %   Matlab dtw.m
 
 x = reshape(q,width,ch_num);
 y = reshape(c,width,ch_num);
 
+x_c = x(:,select_ch);%.*hanning(width);
+y_c = y(:,select_ch);
+width_h = floor(width/5);
+% x_c = x;
+% y_c = y;
+
 validateattributes(x,{'single','double'},{'nonnan','2d','finite'},'dtw','X',1);
 validateattributes(y,{'single','double'},{'nonnan','2d','finite'},'dtw','Y',2);
 
 
+% if ~isempty(x) && ~isempty(y)
+%   C = myCumulativeDistance(x, y,width,ch_num);
+%   dist=C(size(x,1),size(y,1));
+%   [ix,iy] = traceback(C);
 if ~isempty(x) && ~isempty(y)
-  C = myCumulativeDistance(x, y,width,ch_num);
+  C = myCumulativeDistance(x_c, y_c,width,ch_num);
   dist=C(size(x,1),size(y,1));
   [ix,iy] = traceback(C);
+
   %test
   [x_len,~] = size(ix);
 %   figure
@@ -27,7 +38,8 @@ if ~isempty(x) && ~isempty(y)
 %   end
    trace_len = length(ix);
   c_wrap = zeros(width,ch_num);
-  i=1;
+  c_wrap(1,:) = y(1,:);
+  i=2;
   while(i<=trace_len)
       k = 0;
       try
@@ -39,7 +51,9 @@ if ~isempty(x) && ~isempty(y)
 %       if(k>1)
 %           stop=0;
 %       end
-      c_wrap(ix(i),:) = mean(y(iy(i):iy(i+k),:),1);
+    if(ix(i)>1)
+      	c_wrap(ix(i),:) = mean(y(iy(i):iy(i+k),:),1);
+    end
       i=i+k+1;
   end
   i=0;
@@ -67,20 +81,26 @@ if ~isempty(x) && ~isempty(y)
 %   
   
   %c_wrap(width,:) = y(width,:);
+  %y(:,select_ch) = c_wrap(:,select_ch);
   c_test = reshape(c_wrap,[],1);
-   %figure
-     % plot(c_test,'r');
-      hold on
-%   plot(q);
-plot(q)
-plot(c)
-       plot(c_test,'color','r')
-%   for j=1:ch_num
-%     line([width*j,width*j],[-1,1],'linestyle','--');
-%     hold on
-% end
- sub = q-c_test;
-    plot(sub,'linewidth',1)
+  %c_test = reshape(y,[],1);
+%   figure
+%       hold on
+%  plot(q,'k')
+%  plot(c)
+%  plot(c_test,'color','r')
+%     for j=1:ch_num
+%         line([width*j,width*j],[-0.5,.5],'linestyle','--');
+%         hold on
+%     end
+%sub = x(:,center-1:center+1).*hanning(width) - c_wrap(:,center-1:center+1);
+sub = x - c_wrap;
+%sub = x - c_wrap;
+%dist = sum(sum(sub(:,select_ch).^2)./sum(c_wrap(:,select_ch).^2));
+
+%dist = mean(sum(x_c.*hanning(width) .* c_wrap(:,select_ch)./sqrt(sum(c_wrap(:,select_ch).^2))));
+stop = 1;
+%plot(sub,'linewidth',1)
 % figure
 % plot(q);
 % hold on
@@ -92,10 +112,10 @@ plot(c)
 % end
 
    
-  for i =1:ch_num-1
-        ix = [ix;ix(1:trace_len)+i*width];
-        iy = [iy;iy(1:trace_len)+i*width];
-  end
+%   for i =1:ch_num-1
+%         ix = [ix;ix(1:trace_len)+i*width];
+%         iy = [iy;iy(1:trace_len)+i*width];
+%   end
     
     
 else
@@ -120,11 +140,13 @@ end
 function C = myCumulativeDistance(x, y, width, ch_num)
     m = width;
     n = width;
+    width_h = floor(width/2);
+    width_h =1;
     C = zeros(m,n); %m*n 
     
 
-    %d = d_ddtw(x,y,m,n);
-    d = d_sdtw(x,y,m,n);
+    d = d_ddtw(x,y,m,n);
+    %d = d_sdtw(x,y,m,n);
     %d = d_dtw(x,y,m,n);
 %--------------------------------------------------------------------------
     %  symmetic1
@@ -142,11 +164,12 @@ function C = myCumulativeDistance(x, y, width, ch_num)
 %     end
 %     for i =2:m
 %         for j=2:n
-%             C1 = C(i-1,j) + d(i,j);
-%             C2 = C(i-1,j-1) + d(i,j);
-%             C3 = C(i,j-1) + d(i,j);
-%             C(i,j) = min([C1,C2,C3]);
-%             %C(i,j) = min([C2,C3]);
+%                 if(j<=i+width_h && j>=i-width_h)
+%                     C1 = C(i-1,j) + d(i,j);
+%                     C2 = C(i-1,j-1) + d(i,j);
+%                     C3 = C(i,j-1) + d(i,j);
+%                     C(i,j) = min([C1,C2,C3]);
+%                 end
 %         end
 %     end
 %--------------------------------------------------------------------------
@@ -161,10 +184,12 @@ function C = myCumulativeDistance(x, y, width, ch_num)
     C(2,3) = C(1,1)+d(2,3);
     for i = 3:m
         for j = 3:n
-            C1 = C(i-1,j-2) + d(i,j);
-            C2 = C(i-2,j-1) + d(i,j);
-            C3 = C(i-1,j-1) + d(i,j);
-            C(i,j) = min([C1,C2,C3]);
+            if(j<=i+width_h && j>=i-width_h)
+                C1 = C(i-1,j-2) + d(i,j);
+                C2 = C(i-2,j-1) + d(i,j);
+                C3 = C(i-1,j-1) + d(i,j);
+                C(i,j) = min([C1,C2,C3]);
+            end
         end
     end
     a=1;
@@ -203,40 +228,45 @@ function d = d_ddtw(x,y,m,n)
 %%sdtw  sL = x_len / k;
 function d = d_sdtw(x,y,m,n)
     d = zeros(m,n);
-    k=floor(m/9);
-    %k=2;
+    k=floor(m/5);
+    k=1;
     sx = zeros(m,2*k+1);
     sy = zeros(n,2*k+1);
     for i=1:m
         sx(i,k+1) = x(i);
-        for j=1:k
-            if(i-j<=0)
-                sx(i,k+1-j)=sx(i,k+2-j); 
-            else
-                sx(i,k+1-j) = x(i-j);
-            end
-            if(i+j>m)
-                sx(i,k+1+j)=sx(i,k+j);
-            else
-                sx(i,k+1+j)=x(i+j);
-            end
-        end
-    end
-    for i=1:n
         sy(i,k+1) = y(i);
         for j=1:k
             if(i-j<=0)
+                sx(i,k+1-j)=sx(i,k+2-j); 
                 sy(i,k+1-j)=sy(i,k+2-j);
             else
+                sx(i,k+1-j) = x(i-j);
                 sy(i,k+1-j) = y(i-j);
             end
-            if(i+j>n)
+            if(i+j>m)
+                sx(i,k+1+j)=sx(i,k+j);
                 sy(i,k+1+j)=sy(i,k+j);
             else
+                sx(i,k+1+j)=x(i+j);
                 sy(i,k+1+j)=y(i+j);
             end
         end
     end
+%     for i=1:n
+%         sy(i,k+1) = y(i);
+%         for j=1:k
+%             if(i-j<=0)
+%                 sy(i,k+1-j)=sy(i,k+2-j);
+%             else
+%                 sy(i,k+1-j) = y(i-j);
+%             end
+%             if(i+j>n)
+%                 sy(i,k+1+j)=sy(i,k+j);
+%             else
+%                 sy(i,k+1+j)=y(i+j);
+%             end
+%         end
+%     end
     for i = 1:m
         for j=1:n
             d(i,j) = pdist2(sx(i,:),sy(j,:));
@@ -263,7 +293,8 @@ k = 1;
 %  |     / 
 %  1   1   
 %  | /     
-%  * - 1 - o  % while i>1 || j>1
+%  * - 1 - o  
+% while i>1 || j>1
 %   if j == 1
 %     i = i-1;
 %   elseif i == 1

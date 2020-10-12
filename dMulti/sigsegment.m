@@ -22,19 +22,26 @@ function [ sigout ] = sigsegment(sig, t, seglen, opt)
         sig = sig.data;
     end
     
-    [sig_len, chn_num] = size(sig);
+    %
+    sig = permute(sig, [3 1 2]);
+    
+    %[sig_len, chn_num] = size(sig);
+    [sig_len, ch_r, ch_c] = size(sig);
     
     seg_num = length(t);
 	samp_num = round (seglen/dt);
     
-    sig = [zeros(samp_num, chn_num); sig; zeros(samp_num, chn_num)];
+    %sig = [zeros(samp_num, chn_num); sig; zeros(samp_num, chn_num)];
+    sig = [zeros(samp_num, ch_r, ch_c); sig; zeros(samp_num, ch_r, ch_c)];
     
     ibeg = round((t - t0)/dt) + shift * floor(samp_num/2) + 1 + samp_num;
     iend = ibeg + samp_num - 1;
     
-    sigout = zeros(samp_num, seg_num, chn_num);
+    %sigout = zeros(samp_num, seg_num, chn_num);
+    sigout = zeros(samp_num, ch_r, ch_c, seg_num);
     for i = 1:seg_num
-        sigout(:,i,:) = permute(sig(ibeg(i):iend(i),:), [1 3 2]); 
+        %sigout(:,i,:) = permute(sig(ibeg(i):iend(i),:), [1 3 2]); 
+        sigout(:,:,:,i) = sig(ibeg(i):iend(i),:,:); 
     end
 end
 
